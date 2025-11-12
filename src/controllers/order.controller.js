@@ -26,6 +26,7 @@ exports.createOrder = async (req, res) => {
         return res.status(400).json({ message: `Produk tidak ditemukan: ${it.product}` });
       }
 
+      // Validasi stok tersedia (tapi jangan kurangi stok sekarang)
       if (product.stock < it.quantity) {
         return res.status(400).json({ message: `Stok tidak cukup untuk produk ${product._id}` });
       }
@@ -37,9 +38,7 @@ exports.createOrder = async (req, res) => {
         quantity: it.quantity,
       });
 
-      // Kurangi stok produk (opsional: bisa dipindah ke saat pengiriman)
-      product.stock = product.stock - it.quantity;
-      await product.save();
+      // Stock akan dikurangi SETELAH pembayaran berhasil (di payOrder)
     }
 
     const order = new Order({
@@ -122,6 +121,24 @@ exports.payOrder = async (req, res) => {
       default:
         paymentStatus = 'processing';
         paymentMessage = 'Pembayaran sedang diproses';
+    }
+
+    // Jika pembayaran berhasil, kurangi stok produk
+    if (paymentStatus === 'paid') {
+      // Ambil items order dengan detail produk
+      const orderWithItems = await Order.findById(id).populate('items.product');
+      
+      // Kurangi stok untuk setiap item
+      for (const item of orderWithItems.items) {
+        const product = await Product.findById(item.product._id);
+        if (product && product.stock >= item.quantity) {
+          product.stock = product.stock - item.quantity;
+          await product.save();
+        } else {
+          console.error(`Stok tidak cukup untuk produk ${item.product.name}`);
+          // Could add retry logic or manual intervention here
+        }
+      }
     }
 
     order.status = paymentStatus;
@@ -225,13 +242,13 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ message: 'Keranjang kosong' });
     }
 
-    // Validasi stok dan buat items untuk order
+    // Validasi stok dan buat items untuk order (tapi jangan kurangi stok sekarang)
     const orderItems = [];
     for (const item of cart.items) {
       const product = await Product.findById(item.product._id);
       if (!product || product.stock < item.quantity) {
-        return res.status(400).json({ 
-          message: `Stok tidak cukup untuk produk ${item.product.name}` 
+        return res.status(400).json({
+          message: `Stok tidak cukup untuk produk ${item.product.name}`
         });
       }
       
@@ -241,6 +258,8 @@ exports.checkout = async (req, res) => {
         price: item.product.price,
         quantity: item.quantity
       });
+      
+      // Stock akan dikurangi SETELAH pembayaran berhasil (di payOrder)
     }
 
     // Buat order baru
