@@ -1,2 +1,4 @@
 .env
 /node_modules
+debug-admin.js
+reset-admin.js

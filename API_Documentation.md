@@ -66,7 +66,7 @@ Content-Type: application/json
 **Request Body**:
 ```json
 {
-  "userId": "john_doe", // or "john@example.com"
+  "userId": "john_doe",
   "password": "password123"
 }
 ```
@@ -634,6 +634,426 @@ Content-Type: application/json
 
 ---
 
+## Admin Endpoints
+
+**🔒 Note**: All admin endpoints require authentication with a user role of `admin`.
+
+### Authentication Required
+All admin endpoints require the following headers:
+```
+Content-Type: application/json
+Authorization: Bearer {admin_jwt_token}
+```
+
+### 1. Customer Management
+
+#### Get All Customers
+**Endpoint**: `GET /api/admin/customers`
+
+**Description**: Get list of all customer accounts (admin only)
+
+**Response** (200):
+```json
+[
+  {
+    "_id": "64a1b2c3d4e5f6789012345",
+    "username": "customer1",
+    "email": "customer1@example.com",
+    "contactNumber": "08123456789",
+    "city": "Jakarta",
+    "createdAt": "2024-11-11T12:00:00.000Z"
+  },
+  {
+    "_id": "64a1b2c3d4e5f6789012346",
+    "username": "customer2",
+    "email": "customer2@example.com",
+    "contactNumber": "08123456790",
+    "city": "Bandung",
+    "createdAt": "2024-11-11T13:00:00.000Z"
+  }
+]
+```
+
+#### Delete Customer
+**Endpoint**: `DELETE /api/admin/customers/{customerId}`
+
+**Description**: Delete a customer account (admin only)
+
+**Response** (200):
+```json
+{
+  "message": "Customer berhasil dihapus"
+}
+```
+
+**Response** (404):
+```json
+{
+  "message": "Customer tidak ditemukan"
+}
+```
+
+### 2. Guestbook Management
+
+#### Get All Guestbook Entries
+**Endpoint**: `GET /api/admin/guestbook`
+
+**Description**: Get list of all guestbook entries (admin only)
+
+**Response** (200):
+```json
+[
+  {
+    "_id": "64a1b2c3d4e5f6789012347",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "message": "Great service!",
+    "createdAt": "2024-11-11T12:00:00.000Z"
+  },
+  {
+    "_id": "64a1b2c3d4e5f6789012348",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "message": "Love the products",
+    "createdAt": "2024-11-11T13:00:00.000Z"
+  }
+]
+```
+
+#### Delete Guestbook Entry
+**Endpoint**: `DELETE /api/admin/guestbook/{entryId}`
+
+**Description**: Delete a guestbook entry (admin only)
+
+**Response** (200):
+```json
+{
+  "message": "Guestbook entry berhasil dihapus"
+}
+```
+
+**Response** (404):
+```json
+{
+  "message": "Guestbook entry tidak ditemukan"
+}
+```
+
+### 3. Category Management
+
+#### Get All Categories
+**Endpoint**: `GET /api/admin/categories`
+
+**Description**: Get list of all categories (admin only)
+
+**Response** (200):
+```json
+[
+  {
+    "_id": "64a1b2c3d4e5f6789012346",
+    "name": "Electronics",
+    "description": "Electronic devices and gadgets",
+    "createdAt": "2024-11-11T12:00:00.000Z"
+  }
+]
+```
+
+#### Create New Category
+**Endpoint**: `POST /api/admin/categories`
+
+**Description**: Create a new product category (admin only)
+
+**Request Body**:
+```json
+{
+  "name": "Medical Equipment",
+  "description": "Healthcare and medical devices"
+}
+```
+
+**Response** (201):
+```json
+{
+  "_id": "64a1b2c3d4e5f6789012349",
+  "name": "Medical Equipment",
+  "description": "Healthcare and medical devices",
+  "createdAt": "2024-11-11T14:00:00.000Z"
+}
+```
+
+**Response** (400 - Validation Error):
+```json
+{
+  "errors": [
+    {
+      "msg": "Name is required",
+      "param": "name",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Update Category
+**Endpoint**: `PUT /api/admin/categories/{categoryId}`
+
+**Description**: Update an existing category (admin only)
+
+**Request Body**:
+```json
+{
+  "name": "Medical Equipment & Supplies",
+  "description": "Healthcare, medical devices and supplies"
+}
+```
+
+**Response** (200):
+```json
+{
+  "_id": "64a1b2c3d4e5f6789012349",
+  "name": "Medical Equipment & Supplies",
+  "description": "Healthcare, medical devices and supplies",
+  "createdAt": "2024-11-11T14:00:00.000Z"
+}
+```
+
+**Response** (404):
+```json
+{
+  "message": "Kategori tidak ditemukan"
+}
+```
+
+#### Delete Category
+**Endpoint**: `DELETE /api/admin/categories/{categoryId}`
+
+**Description**: Delete a category (admin only)
+
+**Response** (200):
+```json
+{
+  "message": "Kategori berhasil dihapus"
+}
+```
+
+**Response** (404):
+```json
+{
+  "message": "Kategori tidak ditemukan"
+}
+```
+
+### 4. Order Management
+
+#### Get All Orders
+**Endpoint**: `GET /api/admin/orders`
+
+**Description**: Get list of all orders in the system (admin only)
+
+**Response** (200):
+```json
+[
+  {
+    "_id": "64a1b2c3d4e5f6789012347",
+    "customer": {
+      "_id": "64a1b2c3d4e5f6789012345",
+      "username": "customer1",
+      "email": "customer1@example.com"
+    },
+    "items": [
+      {
+        "product": {
+          "_id": "64a1b2c3d4e5f6789012346",
+          "name": "Digital Thermometer",
+          "price": 150000
+        },
+        "name": "Digital Thermometer",
+        "price": 150000,
+        "quantity": 1
+      }
+    ],
+    "total": 150000,
+    "status": "paid",
+    "paymentMethod": "credit_card",
+    "shippingInfo": {
+      "address": "Jl. Kesehatan No. 123",
+      "city": "Jakarta",
+      "contactNumber": "08123456789"
+    },
+    "createdAt": "2024-11-11T12:00:00.000Z"
+  }
+]
+```
+
+#### Update Order Shipping Status
+**Endpoint**: `PUT /api/admin/orders/{orderId}/shipping`
+
+**Description**: Update order shipping status (admin only)
+
+**Request Body**:
+```json
+{
+  "status": "shipped"
+}
+```
+
+**Valid Status Values**:
+- `pending` - Order created, waiting for payment
+- `paid` - Payment received
+- `shipped` - Order shipped to customer
+- `cancelled` - Order cancelled
+
+**Response** (200):
+```json
+{
+  "_id": "64a1b2c3d4e5f6789012347",
+  "customer": {
+    "_id": "64a1b2c3d4e5f6789012345",
+    "username": "customer1",
+    "email": "customer1@example.com"
+  },
+  "items": [...],
+  "total": 150000,
+  "status": "shipped",
+  "paymentMethod": "credit_card",
+  "createdAt": "2024-11-11T12:00:00.000Z"
+}
+```
+
+**Response** (400 - Invalid Status):
+```json
+{
+  "message": "Status tidak valid"
+}
+```
+
+**Response** (404):
+```json
+{
+  "message": "Order tidak ditemukan"
+}
+```
+
+### 5. Shop Request Management
+
+#### Get All Shop Requests
+**Endpoint**: `GET /api/admin/shop-requests`
+
+**Description**: Get list of all shop creation requests (admin only)
+
+**Response** (200):
+```json
+[
+  {
+    "_id": "64a1b2c3d4e5f6789012348",
+    "vendorId": {
+      "_id": "64a1b2c3d4e5f6789012345",
+      "username": "vendor1",
+      "email": "vendor1@example.com"
+    },
+    "vendorName": "Healthy Shop Jakarta",
+    "description": "We want to open a medical supplies store",
+    "status": "pending",
+    "createdAt": "2024-11-11T12:00:00.000Z"
+  }
+]
+```
+
+#### Create Shop Request (Vendor)
+**Endpoint**: `POST /api/admin/shop-requests`
+
+**Description**: Create a new shop creation request (for vendors)
+
+**Headers**:
+```
+Content-Type: application/json
+Authorization: Bearer {vendor_jwt_token}
+```
+
+**Request Body**:
+```json
+{
+  "vendorName": "Healthy Shop Jakarta",
+  "description": "We want to open a medical supplies store focusing on health equipment"
+}
+```
+
+**Response** (201):
+```json
+{
+  "_id": "64a1b2c3d4e5f6789012348",
+  "vendorId": "64a1b2c3d4e5f6789012345",
+  "vendorName": "Healthy Shop Jakarta",
+  "description": "We want to open a medical supplies store focusing on health equipment",
+  "status": "pending",
+  "createdAt": "2024-11-11T14:00:00.000Z"
+}
+```
+
+**Response** (400 - Validation Error):
+```json
+{
+  "errors": [
+    {
+      "msg": "vendorName is required",
+      "param": "vendorName",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Approve Shop Request
+**Endpoint**: `PUT /api/admin/shop-requests/{requestId}/approve`
+
+**Description**: Approve a shop creation request (admin only)
+
+**Response** (200):
+```json
+{
+  "_id": "64a1b2c3d4e5f6789012348",
+  "vendorId": {
+    "_id": "64a1b2c3d4e5f6789012345",
+    "username": "vendor1",
+    "email": "vendor1@example.com"
+  },
+  "vendorName": "Healthy Shop Jakarta",
+  "description": "We want to open a medical supplies store",
+  "status": "approved",
+  "createdAt": "2024-11-11T12:00:00.000Z"
+}
+```
+
+#### Reject Shop Request
+**Endpoint**: `PUT /api/admin/shop-requests/{requestId}/reject`
+
+**Description**: Reject a shop creation request (admin only)
+
+**Response** (200):
+```json
+{
+  "_id": "64a1b2c3d4e5f6789012348",
+  "vendorId": {
+    "_id": "64a1b2c3d4e5f6789012345",
+    "username": "vendor1",
+    "email": "vendor1@example.com"
+  },
+  "vendorName": "Healthy Shop Jakarta",
+  "description": "We want to open a medical supplies store",
+  "status": "rejected",
+  "createdAt": "2024-11-11T12:00:00.000Z"
+}
+```
+
+**Response** (404):
+```json
+{
+  "message": "Permintaan tidak ditemukan"
+}
+```
+
+---
+
 ## Payment Methods
 
 The following payment methods are supported:
@@ -790,3 +1210,133 @@ Content-Type: application/json
     "cardNumber": "****-****-****-1234"
   }
 }
+---
+
+## Example Admin API Calls for Testing
+
+### 1. Login as Admin
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "userId": "admin",
+  "password": "admin123"
+}
+```
+
+### 2. Get All Customers (Admin Only)
+```bash
+GET /api/admin/customers
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 3. Delete Customer (Admin Only)
+```bash
+DELETE /api/admin/customers/64a1b2c3d4e5f6789012345
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 4. Get All Guestbook Entries (Admin Only)
+```bash
+GET /api/admin/guestbook
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 5. Delete Guestbook Entry (Admin Only)
+```bash
+DELETE /api/admin/guestbook/64a1b2c3d4e5f6789012347
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 6. Create New Category (Admin Only)
+```bash
+POST /api/admin/categories
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "Medical Equipment",
+  "description": "Healthcare and medical devices"
+}
+```
+
+### 7. Update Category (Admin Only)
+```bash
+PUT /api/admin/categories/64a1b2c3d4e5f6789012349
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "Medical Equipment & Supplies",
+  "description": "Healthcare, medical devices and supplies"
+}
+```
+
+### 8. Delete Category (Admin Only)
+```bash
+DELETE /api/admin/categories/64a1b2c3d4e5f6789012349
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 9. Get All Orders (Admin Only)
+```bash
+GET /api/admin/orders
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 10. Update Order Shipping Status (Admin Only)
+```bash
+PUT /api/admin/orders/64a1b2c3d4e5f6789012347/shipping
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "status": "shipped"
+}
+```
+
+### 11. Get All Shop Requests (Admin Only)
+```bash
+GET /api/admin/shop-requests
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 12. Approve Shop Request (Admin Only)
+```bash
+PUT /api/admin/shop-requests/64a1b2c3d4e5f6789012348/approve
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 13. Reject Shop Request (Admin Only)
+```bash
+PUT /api/admin/shop-requests/64a1b2c3d4e5f6789012348/reject
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+```
+
+### 14. Create Shop Request (Vendor)
+```bash
+POST /api/admin/shop-requests
+Authorization: Bearer {{vendor_token}}
+Content-Type: application/json
+
+{
+  "vendorName": "Healthy Shop Jakarta",
+  "description": "We want to open a medical supplies store focusing on health equipment"
+}
+```
+
+### 6. Create Admin User (Database Setup)
+```bash
+# Note: This must be done directly in MongoDB or by changing user role
+# Create user with admin role in the database
+```
